@@ -47,4 +47,27 @@ export class FileController {
       file.buffer
     );
   }
+
+  @Post("document")
+  @ApiConsumes("multipart/form-data")
+  @ApiBody({
+    description: "document file",
+    schema: {
+      type: "object",
+      properties: {
+        file: {
+          type: "string",
+          format: "binary",
+        },
+      },
+    },
+  })
+  @UseInterceptors(FileInterceptor("file"))
+  async uploadDocument(@UploadedFile() file: Multer.File) {
+    return await this.minioService.uploadFile(
+      "documents",
+      new Date().getTime() + "-" + file.originalname,
+      file.buffer
+    );
+  }
 }

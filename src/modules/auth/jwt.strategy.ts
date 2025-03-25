@@ -1,40 +1,73 @@
-import { UsersRepository } from '@modules/admin/access/users/users.repository';
-import { UserStatus } from '@admin/access/users/user-status.enum';
-import { UserEntity } from '@admin/access/users/user.entity';
-import { PassportStrategy } from '@nestjs/passport';
-import { Strategy, ExtractJwt } from 'passport-jwt';
-import { InjectRepository } from '@nestjs/typeorm';
-import { ConfigService } from '@nestjs/config';
-import { Injectable } from '@nestjs/common';
-import { JwtPayload } from './dtos';
-import { DisabledUserException, InvalidCredentialsException } from '@common/http/exceptions';
-import { ErrorType } from '@common/enums';
-import { UsersService } from '@modules/admin/access/users/users.service';
+import { InvalidCredentialsException } from "@common/http/exceptions";
+import { BusinessStatus } from "@modules/e-invoice/business/enums/business-status";
+import { ServiceAccountService } from "@modules/e-invoice/business/service-account.service";
+import { UserResponseDto } from "@modules/e-invoice/user/dtos";
+import { UserService } from "@modules/e-invoice/user/user.service";
+import { Injectable } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import { Reflector } from "@nestjs/core";
+import { PassportStrategy } from "@nestjs/passport";
+import { ExtractJwt, Strategy } from "passport-jwt";
+import { SKIP_APPROVE } from "./constants";
+import { JwtPayload } from "./dtos";
+
+export const headerOrCookieExtractor = (req): string | null => {
+  const tokenFromHeader = ExtractJwt.fromAuthHeaderAsBearerToken()(req);
+  if (tokenFromHeader) {
+    return tokenFromHeader;
+  }
+  if (req && req.cookies) {
+    return req.cookies.access_token || null;
+  }
+  return null;
+};
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(
-    private userService: UsersService,
-    private consigService: ConfigService,
+    private userService: UserService,
+    private configService: ConfigService,
+    private reflector: Reflector,
+    private serviceAccountService: ServiceAccountService
   ) {
     super({
-      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      jwtFromRequest: headerOrCookieExtractor,
       ignoreExpiration: false,
-      secretOrKey: consigService.get('TOKEN_SECRET'),
+      secretOrKey: configService.get("TOKEN_SECRET"),
+      passReqToCallback: true, // <-- Important to access request in validate()
     });
   }
 
-  async validate({ username }: JwtPayload): Promise<UserEntity> {
-    const user = await this.userService.findUserByUsername(username);
+  async validate(
+    req: any,
+    payload: JwtPayload
+  ): Promise<
+    UserResponseDto & {
+      allowBusiness: boolean;
+    }
+  > {
+    const user = await this.userService.findByUsername(payload.username);
+
+    const handler = req.route?.stack?.[0]?.handle;
+
+    const skipApprove = this.reflector.getAllAndOverride<boolean>(
+      SKIP_APPROVE,
+      [handler, handler?.constructor]
+    );
+
     if (!user) {
       throw new InvalidCredentialsException();
     }
-    if (user.status == UserStatus.Inactive) {
-      throw new DisabledUserException(ErrorType.InactiveUser);
+
+    let allowBusiness = false;
+    if (skipApprove) {
+      allowBusiness = true;
     }
-    if (user.status == UserStatus.Blocked) {
-      throw new DisabledUserException(ErrorType.BlockedUser);
+
+    const business = await this.serviceAccountService.getBusinessProfile(user);
+    if (business && business.status == BusinessStatus.APPROVED) {
+      allowBusiness = true;
     }
-    return user;
+    return { ...user, allowBusiness };
   }
 }

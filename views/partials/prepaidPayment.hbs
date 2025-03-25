@@ -1,0 +1,5 @@
+{{#if prepaid_payment}}
+<cac:PrepaidPayment>
+    <cbc:PaidAmount currencyID="{{currency}}">{{prepaid_payment.paid_amount}}</cbc:PaidAmount>
+</cac:PrepaidPayment>
+{{/if}}

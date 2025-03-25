@@ -6,7 +6,7 @@ export class <%= classify(name) %>ResponseDto {
   id: number;
 
   <% fields.forEach((field) => { %>@ApiProperty()
-  <%=  camelize(field) %>: string;
+  <%=  (field) %>: string;
 
   <% }) %>@ApiProperty()
   active: boolean;

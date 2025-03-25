@@ -6,7 +6,7 @@ export class Update<%= classify(name) %>RequestDto extends Create<%= classify(na
   <% fields.forEach((field) => { %>@ApiProperty()
   @IsNotEmpty()
   @MaxLength(160)
-  <%= camelize(field) %>: string;
+  <%= (field) %>: string;
 
   <% }) %>@ApiProperty()
   @IsNotEmpty()

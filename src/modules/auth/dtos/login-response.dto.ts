@@ -1,9 +1,8 @@
-import { UserResponseDto } from '../../admin/access/users/dtos';
-import { AuthAccessDto } from './auth-access.dto';
-import { TokenDto } from './token.dto';
+import { UserResponseDto } from "@modules/e-invoice/user/dtos";
+import { TokenDto } from "./token.dto";
 
 export class LoginResponseDto {
   token: TokenDto;
   user: UserResponseDto;
-  access: AuthAccessDto;
+  // access: AuthAccessDto;
 }

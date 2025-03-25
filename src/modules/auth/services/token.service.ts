@@ -1,14 +1,13 @@
-import { UserStatus } from "@admin/access/users/user-status.enum";
 import {
   AccessTokenExpiredException,
   InvalidTokenException,
   RefreshTokenExpiredException,
 } from "@common/http/exceptions";
-import { UsersRepository } from "@modules/admin/access/users/users.repository";
+import { UserStatus } from "@modules/e-invoice/user/enums/UserStatus";
+import { UserService } from "@modules/e-invoice/user/user.service";
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { JwtService } from "@nestjs/jwt";
-import { InjectRepository } from "@nestjs/typeorm";
 import * as NodeCache from "node-cache";
 import { JwtPayload, TokenDto, ValidateTokenResponseDto } from "../dtos";
 import { TokenError, TokenType } from "../enums";
@@ -18,8 +17,7 @@ export class TokenService {
   private readonly cache: NodeCache;
 
   constructor(
-    @InjectRepository(UsersRepository)
-    private usersRepository: UsersRepository,
+    private userService: UserService,
     private jwtService: JwtService,
     private configService: ConfigService
   ) {
@@ -71,6 +69,7 @@ export class TokenService {
    */
   public verifyToken(token: string, type: TokenType) {
     try {
+      console.log("verifytoken", { token });
       return this.jwtService.verify(token);
     } catch ({ name }) {
       if (
@@ -97,12 +96,8 @@ export class TokenService {
   public async validateToken(token: string): Promise<ValidateTokenResponseDto> {
     try {
       const { id } = this.jwtService.verify(token);
-      const user = await this.usersRepository.findOne(id);
-      if (
-        !user ||
-        user.status == UserStatus.Blocked ||
-        user.status == UserStatus.Inactive
-      ) {
+      const user = await this.userService.findById(id);
+      if (!user || user.status == UserStatus.INACTIVE) {
         return { valid: false };
       }
 

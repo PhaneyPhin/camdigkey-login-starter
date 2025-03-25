@@ -1,0 +1,7 @@
+{{#if (eq currency "USD")}}
+<cac:TaxExchangeRate>
+    <cbc:SourceCurrencyCode>USD</cbc:SourceCurrencyCode>
+    <cbc:TargetCurrencyCode>KHR</cbc:TargetCurrencyCode>
+    <cbc:CalculationRate>{{ exchange_rate }}</cbc:CalculationRate>
+</cac:TaxExchangeRate>
+{{/if}}

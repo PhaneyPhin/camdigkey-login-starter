@@ -1,0 +1,20 @@
+<cac:AllowanceCharge>
+  <cbc:ChargeIndicator>{{this.charge_indicator}}</cbc:ChargeIndicator>
+  {{#if this.reason}}
+  <cbc:AllowanceChargeReason>{{this.reason}}</cbc:AllowanceChargeReason>
+  {{/if}}
+  <cbc:Amount currencyID="{{this.currency}}">{{this.amount}}</cbc:Amount>
+  {{!-- {{#if this.baseAmount}}
+  <cbc:BaseAmount currencyID="{{../currency}}">{{this.baseAmount}}</cbc:BaseAmount>
+  <cbc:MultiplierFactorNumeric>20</cbc:MultiplierFactorNumeric>
+  {{/if}} --}}
+  {{#if this.tax_category}}
+  <cac:TaxCategory>
+    <cbc:ID>{{this.tax_category.id}}</cbc:ID>
+    <cbc:Percent>{{this.tax_category.percent}}</cbc:Percent>
+    <cac:TaxScheme>
+      <cbc:ID>{{this.tax_category.tax_scheme}}</cbc:ID>
+    </cac:TaxScheme>
+  </cac:TaxCategory>
+  {{/if}}
+</cac:AllowanceCharge>

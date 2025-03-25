@@ -46,25 +46,10 @@ export class <%= classify(name) %>Migration<%= timestamp %> implements Migration
       true,
     );
 
-    // Add the foreign key constraint
-    await queryRunner.createForeignKey(
-        tableName,
-        new TableForeignKey({
-            columnNames: ['created_by'],
-            referencedColumnNames: ['id'],
-            referencedTableName: 'admin.users',
-            onDelete: 'SET NULL',
-        }),
-    );
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     const table = await queryRunner.getTable(tableName);
-
-    const foreignKey = table.foreignKeys.find(
-      (fk) => fk.columnNames.indexOf('created_by') !== -1,
-    );
-    await queryRunner.dropForeignKey(tableName, foreignKey);
     await queryRunner.dropTable(tableName, true);
   }
 }

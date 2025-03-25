@@ -1,5 +1,7 @@
 import { HttpExceptionFilter, HttpResponseInterceptor } from "@common/http";
 import { SwaggerConfig } from "@config";
+import "@grpc/grpc-js"; // <- preload it before Nest initializes gRPC
+import "@grpc/proto-loader";
 import {
   Logger,
   UnprocessableEntityException,
@@ -8,6 +10,7 @@ import {
 import { NestFactory } from "@nestjs/core";
 import { ValidationError } from "class-validator";
 import * as compression from "compression";
+import * as cookieParser from "cookie-parser";
 import helmet from "helmet";
 import { AppModule } from "./app.module";
 
@@ -29,7 +32,7 @@ const formatValidationErrors = (errors: ValidationError[]) => {
 
 const bootstrap = async () => {
   const app = await NestFactory.create(AppModule);
-
+  app.use(cookieParser());
   app.use(helmet());
   app.use(compression());
   app.enableCors();

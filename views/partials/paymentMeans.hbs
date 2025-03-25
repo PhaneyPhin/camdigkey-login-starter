@@ -1,0 +1,14 @@
+{{#if payment_means}}
+<cac:PaymentMeans>
+    <cbc:PaymentMeansCode name="{{payment_means.code_name}}">{{payment_means.code}}</cbc:PaymentMeansCode>
+    {{#if payment_means.payment_id}}
+    <cbc:PaymentID>{{payment_means.payment_id}}</cbc:PaymentID>
+    {{/if}}
+    {{#if payment_means.payee_financial_account}}
+    <cac:PayeeFinancialAccount>
+        <cbc:ID>{{payment_means.payee_financial_account.id}}</cbc:ID>
+        <cbc:Name>{{payment_means.payee_financial_account.name}}</cbc:Name>
+    </cac:PayeeFinancialAccount>
+    {{/if}}
+</cac:PaymentMeans>
+{{/if}}

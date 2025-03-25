@@ -1,0 +1,36 @@
+<cac:CreditNoteLine>
+  <cbc:ID>{{this.id}}</cbc:ID>
+  <cbc:CreditedQuantity unitCode="{{this.quantity_unit_code}}">{{this.quantity}}</cbc:CreditedQuantity>
+  <cbc:LineExtensionAmount currencyID="{{currency}}">{{this.line_extension_amount}}</cbc:LineExtensionAmount>
+  {{>taxTotal taxTotal=../this.tax_total}}
+  {{#each allowance_charges}}
+  {{>allowanceCharge currency=../currency}}
+  {{/each}}
+
+  <cac:Item>
+    {{#if this.item.description}}
+    <cbc:Description>{{this.item.description}}</cbc:Description>
+    {{/if}}
+
+    <cbc:Name>{{this.item.name}}</cbc:Name>
+
+    {{#if this.item.country}}
+    <cac:OriginCountry>
+      <cbc:IdentificationCode>{{this.item.country}}</cbc:IdentificationCode>
+    </cac:OriginCountry>
+    {{/if}}
+
+    {{#each this.item.tax_categories}}
+    <cac:ClassifiedTaxCategory>
+      <cbc:ID>{{this.id}}</cbc:ID>
+      <cbc:Percent>{{this.percent}}</cbc:Percent>
+      <cac:TaxScheme>
+        <cbc:ID>{{this.tax_scheme}}</cbc:ID>
+      </cac:TaxScheme>
+    </cac:ClassifiedTaxCategory>
+    {{/each}}
+  </cac:Item>
+  <cac:Price>
+    <cbc:PriceAmount currencyID="{{currency}}">{{this.price}}</cbc:PriceAmount>
+  </cac:Price>
+</cac:CreditNoteLine>

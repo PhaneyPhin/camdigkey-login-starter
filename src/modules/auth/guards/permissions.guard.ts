@@ -1,7 +1,6 @@
-import { Reflector } from '@nestjs/core';
-import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
-import { UserEntity } from '@admin/access/users/user.entity';
-import { UserMapper } from '@admin/access/users/users.mapper';
+import { UserResponseDto } from "@modules/e-invoice/user/dtos";
+import { CanActivate, ExecutionContext, Injectable } from "@nestjs/common";
+import { Reflector } from "@nestjs/core";
 
 @Injectable()
 export class PermissionsGuard implements CanActivate {
@@ -13,7 +12,10 @@ export class PermissionsGuard implements CanActivate {
    * @returns{boolean}
    */
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const permissions = this.reflector.get<string[]>('permissions', context.getHandler());
+    const permissions = this.reflector.get<string[]>(
+      "permissions",
+      context.getHandler()
+    );
     if (!permissions?.length) {
       return true;
     }
@@ -27,8 +29,11 @@ export class PermissionsGuard implements CanActivate {
    * @param user {UserEntity}
    * @returns {boolean}
    */
-  async matchPermissions(permissions: string[], user: UserEntity): Promise<boolean> {
-    const { permissions: permissionDto, roles } = await UserMapper.toDtoWithRelations(user);
+  async matchPermissions(
+    permissions: string[],
+    user: UserResponseDto
+  ): Promise<boolean> {
+    const { permissions: permissionDto, roles } = user;
 
     let allPermissions: string[] = permissionDto.map(({ slug }) => slug);
     roles.forEach(({ permissions }) => {
@@ -36,6 +41,8 @@ export class PermissionsGuard implements CanActivate {
       allPermissions = allPermissions.concat(rolePermissions);
     });
 
-    return permissions.some((permission) => allPermissions?.includes(permission));
+    return permissions.some((permission) =>
+      allPermissions?.includes(permission)
+    );
   }
 }

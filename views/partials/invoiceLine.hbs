@@ -1,0 +1,26 @@
+<cac:InvoiceLine>
+  <cbc:ID>{{this.id}}</cbc:ID>
+  <cbc:InvoicedQuantity unitCode="{{this.quantity_unit_code}}">{{this.quantity}}</cbc:InvoicedQuantity>
+  <cbc:LineExtensionAmount currencyID="{{currency}}">{{this.line_extension_amount}}</cbc:LineExtensionAmount>
+  {{#each this.allowance_charges}}
+  {{>allowanceCharge currency=../currency}}
+  {{/each}}
+  {{>taxTotal taxTotal=../this.tax_total}}
+
+  <cac:Item>
+    {{#if this.item.description}}
+    <cbc:Description>{{this.item.description}}</cbc:Description>
+    {{/if}}
+
+    <cbc:Name>{{this.item.name}}</cbc:Name>
+
+    {{#if this.item.country}}
+    <cac:OriginCountry>
+      <cbc:IdentificationCode>{{this.item.country}}</cbc:IdentificationCode>
+    </cac:OriginCountry>
+    {{/if}}
+  </cac:Item>
+  <cac:Price>
+    <cbc:PriceAmount currencyID="{{currency}}">{{this.price}}</cbc:PriceAmount>
+  </cac:Price>
+</cac:InvoiceLine>

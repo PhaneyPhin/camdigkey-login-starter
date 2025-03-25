@@ -1,13 +1,7 @@
-import { UserStatus } from "@admin/access/users/user-status.enum";
-import { UserEntity } from "@admin/access/users/user.entity";
-import { UserMapper } from "@admin/access/users/users.mapper";
 import { ErrorType } from "@common/enums";
-import {
-  DisabledUserException,
-  InvalidCredentialsException,
-} from "@common/http/exceptions";
-import { HashHelper } from "@helpers";
-import { UsersService } from "@modules/admin/access/users/users.service";
+import { DisabledUserException } from "@common/http/exceptions";
+import { UserStatus } from "@modules/e-invoice/user/enums/UserStatus";
+import { UserService } from "@modules/e-invoice/user/user.service";
 import { HttpService } from "@nestjs/axios";
 import { Injectable, UnauthorizedException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
@@ -25,7 +19,7 @@ export class AuthService {
 
   constructor(
     private tokenService: TokenService,
-    private userService: UsersService,
+    private userService: UserService,
     private configService: ConfigService,
     private readonly httpService: HttpService
   ) {
@@ -53,44 +47,28 @@ export class AuthService {
 
   public async loginWithCamdigkey(authToken: string) {
     const userCamdigikey = await this.getCamdigkeyUser(authToken);
-
-    const user = await this.userService.findUserByNationalId(
-      userCamdigikey.personal_code
-    );
-
-    if (!user) {
-      throw new UnauthorizedException();
+    let user;
+    try {
+      const user = await this.userService.findByNationalId(
+        userCamdigikey.personal_code
+      );
+    } catch (e) {
+      user = await this.userService.createFromCamdigikey(userCamdigikey);
     }
 
     const payload: JwtPayload = {
       id: user.id,
       username: user.username,
-      nationalId: user.nationalId,
+      nationalId: user.personal_code,
     };
     const token = await this.tokenService.generateAuthToken(payload);
-
-    const userDto = await UserMapper.toDto(user);
-    const { permissions, roles } = await UserMapper.toDtoWithRelations(user);
-    // const additionalPermissions = permissions.map(({ slug }) => slug);
-    const allPermissions = [];
-    const mappedRoles = roles.map(({ name, permissions }) => {
-      const rolePermissions = permissions.map(({ slug }) => {
-        allPermissions.push(slug);
-        return slug;
-      });
-      return {
-        name,
-        permissions: rolePermissions,
-      };
-    });
+    return {
+      user,
+      token,
+    };
 
     return {
-      user: userDto,
       token,
-      access: {
-        allPermissions: allPermissions,
-        roles: mappedRoles,
-      },
     };
   }
 
@@ -103,55 +81,22 @@ export class AuthService {
     username,
     password,
   }: AuthCredentialsRequestDto): Promise<LoginResponseDto> {
-    const user: UserEntity = await this.userService.findUserByUsername(
-      username
-    );
+    const user = await this.userService.login({ username, password });
 
-    if (!user) {
-      throw new InvalidCredentialsException();
-    }
-
-    const passwordMatch = await HashHelper.compare(password, user.password);
-
-    if (!passwordMatch) {
-      throw new InvalidCredentialsException();
-    }
-    if (user.status == UserStatus.Blocked) {
-      throw new DisabledUserException(ErrorType.BlockedUser);
-    }
-    if (user.status == UserStatus.Inactive) {
+    if (user.status == UserStatus.INACTIVE) {
       throw new DisabledUserException(ErrorType.InactiveUser);
     }
 
     const payload: JwtPayload = {
       id: user.id,
       username: user.username,
-      nationalId: user.nationalId,
+      nationalId: user.personal_code,
     };
     const token = await this.tokenService.generateAuthToken(payload);
 
-    const userDto = await UserMapper.toDto(user);
-    const { permissions, roles } = await UserMapper.toDtoWithRelations(user);
-    // const additionalPermissions = permissions.map(({ slug }) => slug);
-    const allPermissions = [];
-    const mappedRoles = roles.map(({ name, permissions }) => {
-      const rolePermissions = permissions.map(({ slug }) => {
-        allPermissions.push(slug);
-        return slug;
-      });
-      return {
-        name,
-        permissions: rolePermissions,
-      };
-    });
-
     return {
-      user: userDto,
+      user: user,
       token,
-      access: {
-        allPermissions: allPermissions,
-        roles: mappedRoles,
-      },
     };
   }
   async logout(token: string) {

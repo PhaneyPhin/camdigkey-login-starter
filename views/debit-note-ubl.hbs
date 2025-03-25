@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<DebitNote xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2"
+  xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2"
+  xmlns="urn:oasis:names:specification:ubl:schema:xsd:DebitNote-2">
+  <cbc:UBLVersionID>2.1</cbc:UBLVersionID>
+  {{!-- <cbc:CustomizationID>urn:cen.eu:en16931:2017#compliant#urn:fdc:peppol.eu:2017:poacc:billing:3.0
+  </cbc:CustomizationID>
+  <cbc:ProfileID>urn:fdc:peppol.eu:2017:poacc:billing:01:1.0</cbc:ProfileID> --}}
+  <cbc:ID>{{ document_number }}</cbc:ID>
+  <cbc:IssueDate>{{ issue_date }}</cbc:IssueDate>
+  {{>note}}
+  <cbc:DocumentCurrencyCode>{{ currency }}</cbc:DocumentCurrencyCode>
+  {{>orderReference}}
+  {{#each additional_document_references}}
+  {{>additionalDocumentReference}}
+  {{/each}}
+  {{>accountingSupplierParty}}
+  {{>accountingCustomerParty}}
+  {{>paymentMeans}}
+  {{! Optional }}
+  {{#if paymentNote}}
+  <cac:PaymentTerms>
+    <cbc:Note>{{paymentNote}}</cbc:Note>
+  </cac:PaymentTerms>
+  {{/if}}
+  {{!-- Allowance Charge is additional charge --}}
+  {{>prepaidPayment}}
+  {{#each allowance_charges}}
+  {{>allowanceCharge currency=../currency}}
+  {{/each}}
+  {{>taxExchangeRate}}
+  {{>taxTotal taxTotal=../tax_total}}
+  {{>requestedMonetaryTotal}}
+
+  {{#each invoice_lines}}
+  {{>debitNoteLine currency=../currency}}
+  {{/each}}
+</DebitNote>

@@ -1,4 +1,5 @@
-import { UsersModule } from "@modules/admin/access/users/users.module";
+import { ServiceAccountService } from "@modules/e-invoice/business/service-account.service";
+import { UserService } from "@modules/e-invoice/user/user.service";
 import { HttpModule } from "@nestjs/axios";
 import { Module } from "@nestjs/common";
 import { ConfigModule, ConfigService } from "@nestjs/config";
@@ -6,7 +7,6 @@ import { APP_GUARD } from "@nestjs/core";
 import { JwtModule } from "@nestjs/jwt";
 import { PassportModule } from "@nestjs/passport";
 import { TypeOrmModule } from "@nestjs/typeorm";
-import { UsersRepository } from "../admin/access/users/users.repository";
 import { AuthController } from "./auth.controller";
 import { JwtAuthGuard, PermissionsGuard } from "./guards";
 import { JwtStrategy } from "./jwt.strategy";
@@ -15,8 +15,8 @@ import { AuthService, TokenService } from "./services";
 @Module({
   imports: [
     ConfigModule,
-    TypeOrmModule.forFeature([UsersRepository]),
-    UsersModule,
+    TypeOrmModule.forFeature([]),
+    // UsersModule,
     HttpModule,
     PassportModule.register({
       defaultStrategy: "jwt",
@@ -45,6 +45,8 @@ import { AuthService, TokenService } from "./services";
       provide: APP_GUARD,
       useClass: PermissionsGuard,
     },
+    ServiceAccountService,
+    UserService,
   ],
   exports: [JwtStrategy, PassportModule, TokenService, AuthService],
 })

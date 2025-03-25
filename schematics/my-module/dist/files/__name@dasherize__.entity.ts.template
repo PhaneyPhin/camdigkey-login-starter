@@ -31,14 +31,6 @@ export class <%= classify(name) %>Entity extends BaseEntity {
   })
   createdBy: string;
 
-  @ManyToOne(() => UserEntity, { nullable: true })
-  @JoinColumn({ name: "updated_by" })
-  updatedByUser: UserEntity;
-  
-  @ManyToOne(() => UserEntity, { nullable: true })
-  @JoinColumn({ name: 'created_by' })
-  createdByUser: UserEntity;
-
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 

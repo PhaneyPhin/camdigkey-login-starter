@@ -1,15 +1,23 @@
-import { Reflector } from '@nestjs/core';
-import { Injectable, ExecutionContext, UnauthorizedException } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
-import { ExtractJwt } from 'passport-jwt';
-import { InvalidTokenException } from '@common/http/exceptions';
-import { TokenService } from '../services';
-import { TokenType } from '../enums';
-import { SKIP_AUTH } from '../constants';
+import { InvalidTokenException } from "@common/http/exceptions";
+import {
+  ExecutionContext,
+  ForbiddenException,
+  Injectable,
+  UnauthorizedException,
+} from "@nestjs/common";
+import { Reflector } from "@nestjs/core";
+import { AuthGuard } from "@nestjs/passport";
+import { ExtractJwt } from "passport-jwt";
+import { SKIP_AUTH } from "../constants";
+import { TokenType } from "../enums";
+import { TokenService } from "../services";
 
 @Injectable()
-export class JwtAuthGuard extends AuthGuard('jwt') {
-  constructor(private tokenService: TokenService, private reflector: Reflector) {
+export class JwtAuthGuard extends AuthGuard("jwt") {
+  constructor(
+    private tokenService: TokenService,
+    private reflector: Reflector
+  ) {
     super();
   }
 
@@ -19,24 +27,40 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
    * @returns super.canActivate(context)
    */
   canActivate(context: ExecutionContext) {
-    const skipAuth = this.reflector.getAllAndOverride<boolean>(SKIP_AUTH, [context.getHandler(), context.getClass()]);
+    const skipAuth = this.reflector.getAllAndOverride<boolean>(SKIP_AUTH, [
+      context.getHandler(),
+      context.getClass(),
+    ]);
     if (skipAuth) {
       return true;
     }
 
-    const accessToken = ExtractJwt.fromAuthHeaderAsBearerToken()(context.switchToHttp().getRequest());
+    let accessToken = ExtractJwt.fromAuthHeaderAsBearerToken()(
+      context.switchToHttp().getRequest()
+    );
+    if (!accessToken) {
+      const request = context.switchToHttp().getRequest();
+      console.log(request.cookies);
+      // 1) Get JWT from a cookie
+      //    (If you'd like to support fallback to Auth header, you could do so here)
+      accessToken = request.cookies?.access_token;
+      console.log(accessToken);
+    }
     const isValid = this.tokenService.isTokenValid(accessToken);
 
-    if (! isValid) {
-      throw new UnauthorizedException('Token is invalid or blacklisted');
+    if (!isValid) {
+      throw new UnauthorizedException("Token is invalid or blacklisted");
     }
 
     if (!accessToken) {
       throw new InvalidTokenException();
     }
 
-    const payload = this.tokenService.verifyToken(accessToken, TokenType.AccessToken);
-    
+    const payload = this.tokenService.verifyToken(
+      accessToken,
+      TokenType.AccessToken
+    );
+
     if (!payload) {
       throw new UnauthorizedException();
     }
@@ -52,6 +76,10 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
   handleRequest(error, user) {
     if (error || !user) {
       throw new UnauthorizedException();
+    }
+
+    if (!user.allowBusiness) {
+      throw new ForbiddenException();
     }
     return user;
   }

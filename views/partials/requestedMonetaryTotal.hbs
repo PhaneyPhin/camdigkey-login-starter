@@ -1,0 +1,20 @@
+<cac:RequestedMonetaryTotal>
+  <cbc:LineExtensionAmount currencyID="{{currency}}">{{legal_monetary_total.line_extension_amount}}
+  </cbc:LineExtensionAmount>
+  <cbc:TaxExclusiveAmount currencyID="{{currency}}">{{legal_monetary_total.tax_exclusive_amount}}
+  </cbc:TaxExclusiveAmount>
+  <cbc:TaxInclusiveAmount currencyID="{{currency}}">{{legal_monetary_total.tax_inclusive_amount}}
+  </cbc:TaxInclusiveAmount>
+  {{#if legal_monetary_total.allowance_total_amount}}
+  <cbc:AllowanceTotalAmount currencyID="{{currency}}">{{legal_monetary_total.allowance_total_amount}}
+  </cbc:AllowanceTotalAmount>
+  {{/if}}
+  {{#if legal_monetary_total.charge_total_amount}}
+  <cbc:ChargeTotalAmount currencyID="{{currency}}">{{legal_monetary_total.charge_total_amount}}
+  </cbc:ChargeTotalAmount>
+  {{#if legal_monetary_total.prepaid_payment}}
+  <cbc:PrepaidAmount currencyID="{{currency}}">{{legal_monetary_total.prepaid_payment}}</cbc:PrepaidAmount>
+  {{/if}}
+  {{/if}}
+  <cbc:PayableAmount currencyID="{{currency}}">{{legal_monetary_total.payable_amount}}</cbc:PayableAmount>
+</cac:RequestedMonetaryTotal>

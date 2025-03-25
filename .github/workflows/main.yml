@@ -1,0 +1,79 @@
+name: Publish Docker image
+
+on:
+  push:
+    branches:
+      - dev
+      - main
+  release:
+    types: [published]
+
+env:
+  DOCKER_REGISTRY: docker.dev.digitaleconomy.gov.kh
+  REPO_NAME: ${{ github.repository }}
+  DOCKER_REGISTRY_USERNAME: gdde
+  DOCKER_REGISTRY_PASSWORD: U2RMsS9sxEDlBvLTqO/mX0cJC4rquTS6f8oVgN0xY9f3IDBL4+0D2uTn+Kc=
+  WEBHOOK_URL: "https://sb-merchant.e-invoice.gov.kh/hooks/redeploy-webhook"
+  WEBHOOK_SECRET: "XVZOtUjVd7DEVDEe5LGrWWxswvp7vEIO"
+
+jobs:
+  push_to_registry:
+    name: Push Docker image to Custom Docker Registry
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      contents: read
+      id-token: write
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v4
+
+      - name: Log in to Docker Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.DOCKER_REGISTRY }}
+          username: ${{ env.DOCKER_REGISTRY_USERNAME }}
+          password: ${{ env.DOCKER_REGISTRY_PASSWORD }}
+
+      - name: Extract repository name
+        id: extract-repo-name
+        run: |
+          REPO_NAME=$(basename "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+          echo "DOCKER_IMAGE_NAME=${{ env.DOCKER_REGISTRY }}/${REPO_NAME}" >> $GITHUB_ENV
+
+      - name: Set tags based on branch or commit tag
+        id: set-tags
+        run: |
+          if [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            # Extract tag from refs/tags/*
+            tag_name="${{ github.ref_name }}"
+            echo "tags=${tag_name}" >> $GITHUB_ENV
+          else
+            # Use short commit hash for fallback
+            short_sha=${{ github.sha }}
+            echo "tags=${short_sha}" >> $GITHUB_ENV
+          fi
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: ${{ env.DOCKER_IMAGE_NAME }}
+          tags: ${{ env.tags }}
+
+      - name: Build and push Docker image
+        id: push
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+      - name: Invoke deployment hook
+        uses: distributhor/workflow-webhook@v1
+        env:
+          webhook_type: 'json-extended'
+          webhook_url: ${{ env.WEBHOOK_URL }}
+          webhook_secret: ${{ env.WEBHOOK_SECRET }}

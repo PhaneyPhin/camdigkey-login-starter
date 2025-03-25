@@ -5,7 +5,7 @@ export class Create<%= classify(name) %>RequestDto {
   <% fields.forEach((field) => { %>@ApiProperty()
   @IsNotEmpty()
   @MaxLength(160)
-  <%= camelize(field) %>: string;
+  <%= (field) %>: string;
 
   <% }) %>
   

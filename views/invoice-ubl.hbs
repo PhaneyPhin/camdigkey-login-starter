@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Invoice xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2"
+  xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2"
+  xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2">
+  <cbc:UBLVersionID>2.1</cbc:UBLVersionID>
+  {{!-- <cbc:CustomizationID>urn:cen.eu:en16931:2017#compliant#urn:fdc:peppol.eu:2017:poacc:billing:3.0
+  </cbc:CustomizationID>
+  <cbc:ProfileID>urn:fdc:peppol.eu:2017:poacc:billing:01:1.0</cbc:ProfileID> --}}
+  <cbc:ID>{{ document_number }}</cbc:ID>
+  <cbc:IssueDate>{{ issue_date }}</cbc:IssueDate>
+  {{#if due_date}}
+  <cbc:DueDate>{{ due_date }}</cbc:DueDate>
+  {{/if}}
+
+  {{!-- 380 For Commercial Invoice, 381 For Credit Note, 388 For Tax Invoice--}}
+  <cbc:InvoiceTypeCode listID="UN/ECE 1001 Subset">{{ invoice_type_code }}</cbc:InvoiceTypeCode>
+  <cbc:DocumentCurrencyCode>{{ currency }}</cbc:DocumentCurrencyCode>
+
+  {{#each additional_document_references}}
+  {{>additionalDocumentReference}}
+  {{/each}}
+
+  {{>accountingSupplierParty}}
+  {{>accountingCustomerParty}}
+  {{>paymentMeans}}
+  {{! Optional }}
+  {{#if paymentNote}}
+  <cac:PaymentTerms>
+    <cbc:Note>{{paymentNote}}</cbc:Note>
+  </cac:PaymentTerms>
+  {{/if}}
+  {{!-- Allowance Charge is additional charge --}}
+  {{>prepaidPayment}}
+  {{#each allowance_charges}}
+  {{>allowanceCharge currency=../currency}}
+  {{/each}}
+  {{>taxExchangeRate}}
+  {{>taxTotal taxTotal=../tax_total}}
+  {{>legalMonetaryTotal}}
+
+  {{#each invoice_lines}}
+  {{>invoiceLine currency=../currency}}
+  {{/each}}
+
+</Invoice>

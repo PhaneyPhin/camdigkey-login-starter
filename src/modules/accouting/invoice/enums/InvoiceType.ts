@@ -1,0 +1,4 @@
+export enum InvoiceType {
+    TAX_INVOICE = 'TAX_INVOICE',
+    COMMERCIAL_INVOICE = 'COMMERCIAL_INVOICE'
+}

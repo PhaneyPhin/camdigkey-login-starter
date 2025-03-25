@@ -11,12 +11,8 @@ export class <%= classify(name) %>Mapper {
     const dto = new <%= classify(name) %>ResponseDto();
     dto.id = entity.id;
     dto.active = (entity as any).active; // or your default fields
-    <% fields.forEach(field => { %>dto.<%= camelize(field) %> = entity.<%= camelize(field) %>;
+    <% fields.forEach(field => { %>dto.<%= (field) %> = entity.<%= (field) %>;
     <% }) %>
-
-     if (entity.createdByUser) {
-      dto.createdByUser = await UserMapper.toDto(entity.createdByUser);
-    }
 
     return dto;
   }
@@ -25,7 +21,7 @@ export class <%= classify(name) %>Mapper {
     const entity = new <%= classify(name) %>Entity();
     // default fields?
     entity.active = true;
-    <% fields.forEach(field => { %>entity.<%= camelize(field) %> = dto.<%= camelize(field) %>;
+    <% fields.forEach(field => { %>entity.<%= (field) %> = dto.<%= (field) %>;
     <% }) %>
 
     return entity;
@@ -35,7 +31,7 @@ export class <%= classify(name) %>Mapper {
     entity: <%= classify(name) %>Entity,
     dto: Update<%= classify(name) %>RequestDto,
   ): <%= classify(name) %>Entity {
-    <% fields.forEach(field => { %>entity.<%= camelize(field) %> = dto.<%= camelize(field) %>;
+    <% fields.forEach(field => { %>entity.<%= (field) %> = dto.<%= (field) %>;
     <% }) %>
 
     return entity;

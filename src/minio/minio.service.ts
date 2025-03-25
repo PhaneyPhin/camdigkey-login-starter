@@ -14,9 +14,10 @@ export class MinioService {
     this.client = this.minioProvider.createClient();
   }
 
-  async uploadFile(bucketName: string, filePath: string, file: Buffer) {
+  public async uploadFile(bucketName: string, filePath: string, file: Buffer) {
     try {
       await this.client.putObject(bucketName, filePath, file);
+
       return filePath;
     } catch (error) {
       console.error("uploadFile", error);

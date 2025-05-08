@@ -1,0 +1,6 @@
+[submodule "src/proto"]
+	path = src/proto
+	url = git@github.com:mef-gdde/caminv-proto.git
+[submodule "proto"]
+	path = proto
+	url = git@github.com:mef-gdde/caminv-proto.git

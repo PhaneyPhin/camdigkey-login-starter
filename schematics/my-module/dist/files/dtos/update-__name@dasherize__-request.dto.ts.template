@@ -1,0 +1,17 @@
+import { Create<%= classify(name) %>RequestDto } from './create-<%= name %>-request.dto';
+import { IsBoolean, IsNotEmpty, MaxLength } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
+
+export class Update<%= classify(name) %>RequestDto extends Create<%= classify(name) %>RequestDto {
+  <% fields.forEach((field) => { %>@ApiProperty()
+  @IsNotEmpty()
+  @MaxLength(160)
+  <%= (field) %>: string;
+
+  <% }) %>@ApiProperty()
+  @IsNotEmpty()
+  @IsBoolean()
+  active: boolean;
+
+  updatedBy: string;
+}

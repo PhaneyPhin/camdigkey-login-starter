@@ -1,0 +1,8 @@
+{
+  "schematics": {
+    "my-module": {
+      "description": "Generate a custom Nest module",
+      "factory": "./dist/index#myModuleGenerator"
+    }
+  }
+}

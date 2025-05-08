@@ -1,0 +1,134 @@
+import {
+  InternalServerErrorException,
+  RequestTimeoutException,
+  NotFoundException,
+  Injectable,
+} from '@nestjs/common';
+import {
+  Create<%= classify(name) %>RequestDto,
+  Update<%= classify(name) %>RequestDto,
+  <%= classify(name) %>ResponseDto,
+} from './dtos';
+import { handleDeleteError, handleError } from "@utils/handle-error";
+import { <%= classify(name) %>Mapper } from './<%= name %>.mapper';
+import { InjectRepository } from '@nestjs/typeorm';
+import { DBErrorCode } from '@common/enums';
+import { TimeoutError } from 'rxjs';
+import { <%= classify(name) %>Entity } from './<%= name %>.entity';
+import { Repository } from 'typeorm';
+import { <%= classify(name) %>ExistsException } from './<%= name %>-exist.exception'; // e.g., custom exception
+import { BaseCrudService } from '@common/services/base-crud.service';
+import { Filter } from 'typeorm';
+
+export const <%= name.toUpperCase() %>_FILTER_FIELDS = [<% fields.forEach(field => { %>'<%= camelize(field) %>', <% }) %>];
+@Injectable()
+export class <%= classify(name) %>Service extends BaseCrudService {
+  protected queryName: string = '<%= camelize(name) %>';
+  protected SEARCH_FIELDS = [<% fields.forEach(field => { %>'<%= camelize(field) %>', <% }) %>];
+  protected FILTER_FIELDS = <%= name.toUpperCase() %>_FILTER_FIELDS
+
+  constructor(
+    @InjectRepository(<%= classify(name) %>Entity)
+    private <%= camelize(name) %>Repository: Repository<<%= classify(name) %>Entity>,
+  ) {
+    super()
+  }
+ 
+  /**
+   * Convert a UserEntity to a UserResponseDto with relations.
+   */
+  protected getMapperResponseEntityFields(){
+     return <%= classify(name) %>Mapper.toDto;
+  }
+
+  /**
+   * Customize filter by each field query logic on listing API
+   */
+  protected getFilters() {
+    const filters: { [key: string]: Filter<<%= classify(name) %>Entity> } = {
+      createdAt: (query, value) => {
+        const [start, end] = value.split(',');
+        return query.andWhere('<%= camelize(name) %>.created_at BETWEEN :start AND :end', { start, end });
+      }
+    };
+
+    return filters
+  }
+
+  /** Require for base query list of feature */
+  protected getListQuery() {
+    return this.<%= camelize(name) %>Repository.createQueryBuilder('<%= camelize(name) %>')
+      .leftJoinAndSelect('<%= camelize(name) %>.createdByUser', 'uc')
+  }
+
+  getAll<%= classify(name) %>() {
+    return this.<%= camelize(name) %>Repository.createQueryBuilder('<%= camelize(name) %>').select(['id', 'name']).getRawMany()
+  }
+
+  /**
+   * Get <%= name %> by id
+   */
+  public async get<%= classify(name) %>ById(id: number): Promise<<%= classify(name) %>ResponseDto> {
+    const entity = await this.getListQuery()
+      .where('<%= camelize(name) %>.id = :id', { id })
+      .getOne();
+
+    if (!entity) {
+      throw new NotFoundException();
+    }
+    return <%= classify(name) %>Mapper.toDto(entity);
+  }
+
+  /**
+   * Create new <%= name %>
+   */
+  public async create<%= classify(name) %>(
+    dto: Create<%= classify(name) %>RequestDto,
+  ): Promise<<%= classify(name) %>ResponseDto> {
+    try {
+      let entity = <%= classify(name) %>Mapper.toCreateEntity(dto);
+      entity = await this.<%= camelize(name) %>Repository.save(entity);
+      return <%= classify(name) %>Mapper.toDto(entity);
+    } catch (error) {
+      handleError(error, dto)
+    }
+  }
+
+  /**
+   * Update <%= name %> by id
+   */
+  public async update<%= classify(name) %>(
+    id: number,
+    dto: Update<%= classify(name) %>RequestDto,
+  ): Promise<<%= classify(name) %>ResponseDto> {
+    let entity = await this.<%= camelize(name) %>Repository.findOneBy({ id });
+    if (!entity) {
+      throw new NotFoundException();
+    }
+    try {
+      entity = <%= classify(name) %>Mapper.toUpdateEntity(entity, dto);
+      entity = await this.<%= camelize(name) %>Repository.save(entity);
+      return <%= classify(name) %>Mapper.toDto(entity);
+    } catch (error) {
+      handleError(error, dto)
+    }
+  }
+
+  /**
+   * Update <%= name %> by id
+   */
+  public async delete<%= classify(name) %>(
+    id: number
+  ): Promise<<%= classify(name) %>ResponseDto> {
+    let entity = await this.<%= camelize(name) %>Repository.findOneBy({ id });
+    if (!entity) {
+      throw new NotFoundException();
+    }
+    try {
+      await this.<%= camelize(name) %>Repository.delete({ id: id });
+      return <%= classify(name) %>Mapper.toDto(entity);
+    } catch (error) {
+      handleDeleteError(id, error);
+    }
+  }
+}

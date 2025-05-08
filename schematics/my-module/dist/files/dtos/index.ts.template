@@ -1,0 +1,9 @@
+import { Create<%= classify(name) %>RequestDto } from './create-<%= name %>-request.dto';
+import { Update<%= classify(name) %>RequestDto } from './update-<%= name %>-request.dto';
+import { <%= classify(name) %>ResponseDto } from './<%= name %>-response.dto';
+
+export {
+  Create<%= classify(name) %>RequestDto,
+  Update<%= classify(name) %>RequestDto,
+  <%= classify(name) %>ResponseDto,
+};

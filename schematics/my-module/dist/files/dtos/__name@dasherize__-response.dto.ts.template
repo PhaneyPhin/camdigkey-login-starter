@@ -1,0 +1,16 @@
+import { ApiProperty } from '@nestjs/swagger';
+import { UserResponseDto } from '@admin/access/users/dtos';
+
+export class <%= classify(name) %>ResponseDto {
+  @ApiProperty()
+  id: number;
+
+  <% fields.forEach((field) => { %>@ApiProperty()
+  <%=  (field) %>: string;
+
+  <% }) %>@ApiProperty()
+  active: boolean;
+
+  @ApiProperty()
+  createdByUser: UserResponseDto
+}

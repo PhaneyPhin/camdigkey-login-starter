@@ -1,0 +1,118 @@
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Body,
+  Delete,
+  Param,
+  ParseIntPipe,
+  ValidationPipe,
+  UseGuards,
+} from '@nestjs/common';
+import {
+  ApiBearerAuth,
+  ApiConflictResponse,
+  ApiOperation,
+  ApiTags,
+  ApiQuery,
+} from '@nestjs/swagger';
+
+import { <%= name.toUpperCase() %>_FILTER_FIELDS, <%= classify(name) %>Service } from './<%= name %>.service';
+import {
+  Create<%= classify(name) %>RequestDto,
+  Update<%= classify(name) %>RequestDto,
+  <%= classify(name) %>ResponseDto,
+} from './dtos';
+
+import { CurrentUser, Permissions, SuperUserGuard, TOKEN_NAME } from '@auth';
+import { ApiGlobalResponse } from '@common/decorators';
+import { ApiPaginatedResponse, PaginationParams, PaginationRequest, PaginationResponseDto } from '@libs/pagination';
+import { ApiFields } from '@common/decorators/api-fields.decorator';
+import { <%= classify(name) %>Entity } from './<%= name %>.entity';
+import { UserEntity } from '@admin/access/users/user.entity';
+
+@ApiTags('<%= classify(name) %>')
+@ApiBearerAuth(TOKEN_NAME)
+@Controller({
+  path: 'access/<%= name %>',
+  version: '1',
+})
+export class <%= classify(name) %>Controller {
+  constructor(private readonly <%= camelize(name) %>Service: <%= classify(name) %>Service) {}
+
+  @ApiOperation({ description: 'Get a paginated <%= name %> list' })
+  @ApiPaginatedResponse(<%= classify(name) %>ResponseDto)
+  @ApiQuery({ name: 'search',type: 'string', required: false, example: '',})
+  @ApiFields(<%= name.toUpperCase() %>_FILTER_FIELDS)
+  @Permissions(
+    'admin.access.<%= name %>.read',
+    'admin.access.<%= name %>.create',
+    'admin.access.<%= name %>.update',
+  )
+  @Get()
+  public get<%= classify(name) %>s(@PaginationParams() pagination: PaginationRequest): Promise<PaginationResponseDto<<%= classify(name) %>ResponseDto>> {
+    return this.<%= camelize(name) %>Service.list<<%= classify(name) %>Entity, <%= classify(name) %>ResponseDto>(pagination);
+  }
+
+  @ApiOperation({ description: 'Get all <%= name %> list form select form' })  
+  @Permissions(
+    'admin.access.<%= name %>.read',
+    'admin.access.<%= name %>.create',
+    'admin.access.<%= name %>.update',
+  )
+  @Get('/select-options')
+  public getAll<%= classify(name) %>ForSelect(): Promise<{ id: string, name: string }[]> {
+    return this.<%= camelize(name) %>Service.getAll<%= classify(name) %>();
+  }
+
+  @ApiOperation({ description: 'Get <%= name %> by id' })
+  @ApiGlobalResponse(<%= classify(name) %>ResponseDto)
+  @Permissions(
+    'admin.access.<%= name %>.read',
+    'admin.access.<%= name %>.create',
+    'admin.access.<%= name %>.update',
+  )
+  @Get('/:id')
+  public get<%= classify(name) %>ById(@Param('id', ParseIntPipe) id: number): Promise<<%= classify(name) %>ResponseDto> {
+    return this.<%= camelize(name) %>Service.get<%= classify(name) %>ById(id);
+  }
+
+  @ApiOperation({ description: 'Create new <%= name %>' })
+  @ApiGlobalResponse(<%= classify(name) %>ResponseDto)
+  @ApiConflictResponse({ description: '<%= classify(name) %> already exists' })
+  @UseGuards(SuperUserGuard)
+  @Permissions('admin.access.<%= name %>.create')
+  @Post()
+  public create<%= classify(name) %>(
+    @Body(ValidationPipe) dto: Create<%= classify(name) %>RequestDto,
+    @CurrentUser() user: UserEntity,
+  ): Promise<<%= classify(name) %>ResponseDto> {
+    return this.<%= camelize(name) %>Service.create<%= classify(name) %>({ ...dto,  createdBy: user.id });
+  }
+
+  @ApiOperation({ description: 'Update <%= name %> by id' })
+  @ApiGlobalResponse(<%= classify(name) %>ResponseDto)
+  @ApiConflictResponse({ description: '<%= classify(name) %> already exists' })
+  @UseGuards(SuperUserGuard)
+  @Permissions('admin.access.<%= name %>.update')
+  @Put('/:id')
+  public update<%= classify(name) %>(
+    @Param('id', ParseIntPipe) id: number,
+    @Body(ValidationPipe) dto: Update<%= classify(name) %>RequestDto,
+    @CurrentUser() user: UserEntity,
+  ): Promise<<%= classify(name) %>ResponseDto> {
+    return this.<%= camelize(name) %>Service.update<%= classify(name) %>(id, { ...dto, updatedBy: user.id });
+  }
+
+  @ApiOperation({ description: 'Update <%= name %> by id' })
+  @ApiGlobalResponse(<%= classify(name) %>ResponseDto)
+  @UseGuards(SuperUserGuard)
+  @Permissions('admin.access.<%= name %>.delete')
+  @Delete('/:id')
+  public delete<%= classify(name) %>(
+    @Param('id', ParseIntPipe) id: number
+  ): Promise<<%= classify(name) %>ResponseDto> {
+    return this.<%= camelize(name) %>Service.delete<%= classify(name) %>(id);
+  }
+}

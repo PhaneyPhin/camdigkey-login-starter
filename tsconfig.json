@@ -1,0 +1,51 @@
+{
+  "compilerOptions": {
+    "module": "commonjs", // Default module system for Node.js
+    "declaration": true,
+    "removeComments": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "allowSyntheticDefaultImports": true,
+    "target": "es2017", // ES2017 is modern enough for most environments
+    "sourceMap": true,
+    "outDir": "./dist", // Output directory for transpiled files
+    "baseUrl": "./", // Base directory for resolving modules
+    "paths": {
+      "@common/*": [
+        "src/common/*"
+      ],
+      "@database/*": [
+        "src/database/*"
+      ],
+      "@config": [
+        "src/config"
+      ],
+      "@helpers": [
+        "src/helpers"
+      ],
+      "@modules/*": [
+        "src/modules/*"
+      ],
+      "@admin/*": [
+        "src/modules/admin/*"
+      ],
+      "@auth": [
+        "src/modules/auth/"
+      ],
+      "@libs/*": [
+        "src/libs/*"
+      ],
+      "@utils/*": [
+        "src/utils/*"
+      ]
+    },
+    "incremental": true // Speeds up builds by storing incremental cache
+  },
+  "include": [
+    "src/**/**/*.ts"
+  ], // Include all TypeScript files in src/
+  "exclude": [
+    "node_modules",
+    "dist"
+  ] // Exclude build outputs and dependencies
+}

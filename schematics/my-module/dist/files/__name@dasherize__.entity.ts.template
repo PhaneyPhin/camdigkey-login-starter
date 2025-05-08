@@ -1,0 +1,43 @@
+import { BaseEntity } from '@database/entities';
+import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { UserEntity } from '@admin/access/users/user.entity';
+
+@Entity({ schema: 'admin', name: '<%= dasherize(name) %>' })
+export class <%= classify(name) %>Entity extends BaseEntity {
+  @PrimaryGeneratedColumn({ name: 'id', type: 'integer' })
+  id: number;
+
+  <% fields.forEach((field) => { %>
+  @Column({
+    name: '<%= field %>',
+    type: 'varchar',
+    nullable: true,
+  })
+  <%=  camelize(field) %>: string;
+  <% }) %>
+
+  @Column({
+    name: 'active',
+    type: 'boolean',
+    nullable: false,
+    default: true,
+  })
+  active: boolean;
+
+  @Column({
+    name: 'created_by',
+    type: 'uuid',
+    nullable: true,
+  })
+  createdBy: string;
+
+  @UpdateDateColumn({ name: 'updated_at' })
+  updatedAt: Date;
+
+  @CreateDateColumn({ name: 'created_at' })
+  createdAt: Date;
+  constructor(partial?: Partial<<%= classify(name) %>Entity>) {
+    super();
+    Object.assign(this, partial);
+  }
+}

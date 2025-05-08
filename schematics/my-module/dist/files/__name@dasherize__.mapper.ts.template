@@ -1,0 +1,39 @@
+import { <%= classify(name) %>Entity } from './<%= name %>.entity';
+import { UserMapper } from '@admin/access/users/users.mapper';
+import {
+  Create<%= classify(name) %>RequestDto,
+  Update<%= classify(name) %>RequestDto,
+  <%= classify(name) %>ResponseDto,
+} from './dtos';
+
+export class <%= classify(name) %>Mapper {
+  public static async toDto(entity: <%= classify(name) %>Entity): Promise<<%= classify(name) %>ResponseDto> {
+    const dto = new <%= classify(name) %>ResponseDto();
+    dto.id = entity.id;
+    dto.active = (entity as any).active; // or your default fields
+    <% fields.forEach(field => { %>dto.<%= (field) %> = entity.<%= (field) %>;
+    <% }) %>
+
+    return dto;
+  }
+
+  public static toCreateEntity(dto: Create<%= classify(name) %>RequestDto): <%= classify(name) %>Entity {
+    const entity = new <%= classify(name) %>Entity();
+    // default fields?
+    entity.active = true;
+    <% fields.forEach(field => { %>entity.<%= (field) %> = dto.<%= (field) %>;
+    <% }) %>
+
+    return entity;
+  }
+
+  public static toUpdateEntity(
+    entity: <%= classify(name) %>Entity,
+    dto: Update<%= classify(name) %>RequestDto,
+  ): <%= classify(name) %>Entity {
+    <% fields.forEach(field => { %>entity.<%= (field) %> = dto.<%= (field) %>;
+    <% }) %>
+
+    return entity;
+  }
+}

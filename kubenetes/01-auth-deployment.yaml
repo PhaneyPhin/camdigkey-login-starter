@@ -1,0 +1,75 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: auth-deployment
+  template:
+    metadata:
+      labels:
+        app: auth-deployment
+    spec:
+      containers:
+        - name: auth-deployment
+          image: docker.dev.digitaleconomy.gov.kh/camdigikey-auth:release-1.0.0
+          volumeMounts:
+            - mountPath: "/usr/src/app/build/src/keystore"
+              name: portal-keystore-secret-volume
+          env:
+            - name: PORT
+              value: "80"
+          envFrom:
+            - configMapRef:
+                name: config
+            - configMapRef:
+                name: db-config
+            - configMapRef:
+                name: camdigikey-config
+            - configMapRef:
+                name: config-secrete
+      imagePullSecrets:
+        - name: regcred
+      volumes:
+        - name: portal-keystore-secret-volume
+          secret:
+            secretName: keystore-secret
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: auth-deployment
+  name: auth-deployment
+  namespace: application
+spec:
+  type: NodePort # Change from LoadBalancer to NodePort
+  ports:
+    - port: 80
+      protocol: TCP
+      targetPort: 80
+      nodePort: 30080 # Optional: specify a port between 30000-32767
+  selector:
+    app: auth-deployment
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: auth-deployment
+  namespace: application
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: auth-deployment
+  minReplicas: 2 # Minimum number of replicas
+  maxReplicas: 5 # Maximum number of replicas
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 80 # Scale up if CPU usage exceed
